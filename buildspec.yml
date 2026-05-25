@@ -16,41 +16,41 @@ phases:
 
       - export IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
 
-      - REPOSITORY_URI=$ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME
+      - export REPOSITORY_URI=$ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME
 
-      - echo "Repository URI:"
-      - echo $REPOSITORY_URI
+      - echo "Repository URI: $REPOSITORY_URI"
 
       - echo "Docker Version:"
       - docker --version
 
-      - echo "Docker Info:"
-      - docker info
-
+      - echo "Logging into ECR..."
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin https://$REPOSITORY_URI
 
   build:
     commands:
       - echo "Build started on $(date)"
 
-      - echo "Current Directory:"
-      - pwd
-
-      - echo "Listing Files:"
+      - echo "Listing project files..."
       - ls -la
 
       - echo "Building Docker image..."
-      - docker build -t $IMAGE_REPO_NAME .
+      - docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG .
 
+      - echo "Tagging Docker image..."
       - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $REPOSITORY_URI:$IMAGE_TAG
 
   post_build:
     commands:
-      - echo "Pushing Docker image..."
+      - echo "Build completed on $(date)"
 
+      - echo "Pushing Docker image to ECR..."
       - docker push $REPOSITORY_URI:$IMAGE_TAG
 
+      - echo "Creating imagedefinitions.json..."
+
       - printf '[{"name":"%s","imageUri":"%s"}]' $CONTAINER_NAME $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+
+      - cat imagedefinitions.json
 
 artifacts:
   files:
