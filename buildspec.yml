@@ -20,35 +20,33 @@ phases:
 
       - echo "Repository URI: $REPOSITORY_URI"
 
-      - echo "Docker Version:"
       - docker --version
 
-      - echo "Logging into ECR..."
       - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin https://$REPOSITORY_URI
 
   build:
     commands:
       - echo "Build started on $(date)"
 
-      - echo "Listing project files..."
       - ls -la
 
       - echo "Building Docker image..."
-      - "docker build -t $IMAGE_REPO_NAME:$IMAGE_TAG ."
+
+      - 'docker build -t "$IMAGE_REPO_NAME:$IMAGE_TAG" .'
 
       - echo "Tagging Docker image..."
-      - "docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $REPOSITORY_URI:$IMAGE_TAG"
+
+      - 'docker tag "$IMAGE_REPO_NAME:$IMAGE_TAG" "$REPOSITORY_URI:$IMAGE_TAG"'
 
   post_build:
     commands:
-      - echo "Build completed on $(date)"
-
       - echo "Pushing Docker image to ECR..."
-      - "docker push $REPOSITORY_URI:$IMAGE_TAG"
+
+      - 'docker push "$REPOSITORY_URI:$IMAGE_TAG"'
 
       - echo "Creating imagedefinitions.json..."
 
-      - printf '[{"name":"%s","imageUri":"%s"}]' $CONTAINER_NAME $REPOSITORY_URI:$IMAGE_TAG > imagedefinitions.json
+      - printf '[{"name":"%s","imageUri":"%s"}]' "$CONTAINER_NAME" "$REPOSITORY_URI:$IMAGE_TAG" > imagedefinitions.json
 
       - cat imagedefinitions.json
 
