@@ -18,12 +18,28 @@ phases:
 
       - REPOSITORY_URI=$ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com/$IMAGE_REPO_NAME
 
-      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $REPOSITORY_URI
+      - echo "Repository URI:"
+      - echo $REPOSITORY_URI
+
+      - echo "Docker Version:"
+      - docker --version
+
+      - echo "Docker Info:"
+      - docker info
+
+      - aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin https://$REPOSITORY_URI
 
   build:
     commands:
       - echo "Build started on $(date)"
 
+      - echo "Current Directory:"
+      - pwd
+
+      - echo "Listing Files:"
+      - ls -la
+
+      - echo "Building Docker image..."
       - docker build -t $IMAGE_REPO_NAME .
 
       - docker tag $IMAGE_REPO_NAME:$IMAGE_TAG $REPOSITORY_URI:$IMAGE_TAG
